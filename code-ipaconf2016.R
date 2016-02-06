@@ -21,13 +21,10 @@
 # install packages
 ## from CRAN server
 #install.packages("cluster") 
-#install.packages("readxl") 
 #install.packages("rpart")
-#install.packages("party")
 #install.packages("vegan")
-#install.packages("mgcv")
 #install.packages("gam")
-#install.packages("psych")
+
 
 
 ## from Bioconductor server
@@ -40,10 +37,8 @@ library(pcaMethods) # for pcaMethods package
 library(cluster) # for cluster analysis
 #library(readxl) # for opening data directly from xls format
 library(rpart)
-library(party)
 library(vegan)
 library(gam)
-library(mgcv)
 library(psych) # univar description
 
 # Load data
@@ -88,32 +83,6 @@ plot(pca, type="lines")
 slplot(pca) # default function in pcamethods but not big enough
 
 
-## Plotting results (loadings and scores)
-plot.new()
-par(mfrow=c(1,2))
-plot(loadings(pca), 
-     pch = 20,
-     main = "Variable loadings",
-     sub = "Po Plain Italy")
-text(loadings(pca), 
-     row.names(loadings(pca)),
-     cex=0.6, 
-     pos=1, 
-     col="blue")
-abline(v=0, h=0, 
-       col = "gray70")
-
-plot(scores(pca), 
-     main = "Case scores",
-     sub = "Po Plain Italy")
-abline(v=0, h=0, 
-       col = "gray70")
-text(scores(pca), row.names(df),
-     cex=0.6, 
-     pos=2, 
-     col="blue", offset=0)
-dev.off()
-
 # PCA using'vegan' package
 df <- scale(df)  #standardize the variables
 vegan.pca <- rda(df)
@@ -123,18 +92,19 @@ biplot(vegan.pca, scaling = -1, display = 'species')
 biplot(vegan.pca, scaling = -1, display = 'sites')
 
 ordilabel(plot(vegan.pca), display="species", font=1, col="gray70") # Add some frame on the label
-# reading "cleanplot.pca" function
+orditkplot(plot(vegan.pca)) # you see that you can move the labels.
+
+# reading "cleanplot.pca" function to make better visualisation
 source ('http://www.davidzeleny.net/anadat-r/doku.php/en:numecolr:cleanplot.pca?do=export_code&codeblock=0')
 cleanplot.pca (vegan.pca)
 
-# reading "evplot" function first:
+# reading "evplot" function for better visualisation
 source ("http://www.davidzeleny.net/anadat-r/doku.php/en:numecolr:evplot?do=export_code&codeblock=0")
 # select the data frame with eigenvalues of particular axes:
 ev <- vegan.pca$CA$eig
 
 # calculate axis-importance and draw the barplots:
 evplot(ev)
-orditkplot(plot(vegan.pca)) # you see that you can move the labels.
 
 
 # Cluster analysis (using 'vegan' package)
@@ -148,7 +118,7 @@ plot (cluster.complete, main = 'Complete linkage')
 plot (cluster.average, main = 'Average linkage')
 
 # Regression tree
-## using rpart pkh
+## using rpart pkg
 tree.fit <- rpart(Alk ~ ., data = df) # error -> 'data' must be a data.frame
 class(df) # identifying df class
 df2 <- as.data.frame(df) # conversion from matrix to data frame
@@ -160,10 +130,6 @@ plot(tree.fit, uniform=TRUE,
      main="Tree classification of water samples: Po Plain, Italy")
 text(tree.fit, use.n=TRUE, all=TRUE, cex=.8)
 
-## using party pkg
-install.packages("rpart.plot")
-tree.fit <- ctree(Alk ~ ., data = df2) 
-plot(tree.fit)
 
 ## using GAM pkg
 mod_lm <- gam(Alk ~ ., data = df2)
