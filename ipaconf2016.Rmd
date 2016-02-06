@@ -1,0 +1,28 @@
+---
+title: "ipaconf2016"
+author: "Dasapta Erwin Irawan dan Prana Ugi"
+date: "February 6, 2016"
+output: pdf_document
+---
+
+
+    Title of Paper
+    Author Names, Affiliation, Addresses, Phone number, Fax, E-mail contact
+    Designate which Author will present the paper (presenter’s name)
+    Indicate preference for (a) Oral), (b) Poster Presentation, (c) Either
+    Indicate if this paper was previously presented or published; if so, when, where, and by whom?
+    The abstract should encourage the committee to select your paper. It should point out ways that the reader can use your conclusions. The abstract should: (a) state the scope and principle objectives, (b) methods utilized, (c) summarize the results, (d) state the principal conclusions, and (e) Keywords.
+    Abstract should be between 150 words and maximum 300 words in length and should be able to stand alone as a short version of the paper.
+
+
+```{r}
+summary(cars)
+```
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
