@@ -46,9 +46,10 @@ library(psych) # univar description
 
 # Load data
 df <- read.csv("dataPoplain.csv", header=T) # load data 
-class(df)
+df
 row.names(df) <- df$sites # setting row names
 df <- df[4:17]
+df
 dim(df)
 is.na(df) # checking NA if any
 #df <- na.omit(df) # omitting NA if any
@@ -91,7 +92,6 @@ slplot(pca) # default function in pcamethods but not big enough
 
 # PCA using'vegan' package
 df <- scale(df)  #standardize the variables
-class(df)
 vegan.pca <- rda(df)
 vegan.pca
 plot(vegan.pca)
@@ -100,11 +100,11 @@ biplot(vegan.pca, scaling = -1, display = 'sites')
 dev.off()
 
 ordilabel(plot(vegan.pca), display="species", font=1, col="gray70") # Add some frame on the label
-orditkplot(plot(vegan.pca, display = 'sites')) # you see that you can move the labels.
+orditkplot(plot(vegan.pca)) # you see that you can move the labels.
 
 # reading "cleanplot.pca" function to make better visualisation
 source ('http://www.davidzeleny.net/anadat-r/doku.php/en:numecolr:cleanplot.pca?do=export_code&codeblock=0')
-cleanplot.pca(vegan.pca)
+cleanplot.pca (vegan.pca)
 
 # reading "evplot" function for better visualisation
 source ("http://www.davidzeleny.net/anadat-r/doku.php/en:numecolr:evplot?do=export_code&codeblock=0")
@@ -123,13 +123,10 @@ par (mfrow = c (1,3)) # will draw all dendrogram into one figure
 plot (cluster.single, main = 'Single linkage')
 plot (cluster.complete, main = 'Complete linkage')
 plot (cluster.average, main = 'Average linkage')
-
-# Regression tree using rpart pkg
-# rpart() must be in data frame class
-class(df) # it's matrix class
+class(df) # it's matrix type
 df <- as.data.frame(df) # re-conversion from matrix to data frame
-class(df) # now it's data frame type
 tree.fit <- rpart(Alk ~ ., data = df) # df must be in data frame class
+class(df) # now it's data frame type
 printcp(tree.fit) # display the results
 plotcp(tree.fit) # visualize cross-validation results
 summary(tree.fit) # detailed summary of splits
