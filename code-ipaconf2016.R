@@ -20,13 +20,13 @@
 
 # install packages
 ## from CRAN server
-#install.packages("cluster") 
-#install.packages("rpart")
-#install.packages("vegan")
-#install.packages("gam")
-
-#source("https://bioconductor.org/biocLite.R")
-#biocLite("pcaMethods")
+install.packages("cluster") 
+install.packages("rpart")
+install.packages("vegan")
+install.packages("gam")
+install.packages("psych") # univar description
+source("https://bioconductor.org/biocLite.R")
+biocLite("pcaMethods")
 
 ## from Bioconductor server
 #pcaMethods package from Bioconductor server
@@ -39,16 +39,13 @@ library(cluster) # for cluster analysis
 #library(readxl) # for opening data directly from xls format
 library(rpart)
 library(vegan)
-library(gam)
 library(psych) # univar description
-
-
+library(ggplot2)
+library(mgcv)
 
 # Load data
 df <- read.csv("dataPoplain.csv", header=T) # load data 
 class(df)
-row.names(df) <- df$sites # setting row names
-df <- df[4:17]
 dim(df)
 is.na(df) # checking NA if any
 #df <- na.omit(df) # omitting NA if any
@@ -56,29 +53,51 @@ is.na(df) # checking NA if any
 
 # Exploratory using pairs() function
 # Assesing data patterns
-cor.tab <- cor(df)
+cor.tab <- cor(df[4:15])
+cor.tab
 write.csv(cor.tab, "cortab.csv")
 univar.tab <- describe(df) # from psych package
 univar.tab
 write.csv(univar.tab, "univar.csv")
 
-pairs(df,
-      lower.panel=panel.smooth, 
-      upper.panel=NULL, 
-      pch=20)
+install.packages("PerformanceAnalytics")    
+library(PerformanceAnalytics)
+chart.Correlation(df[4:17], histogram=TRUE, pch=19) # visual PA
 
+install.packages("ggcorrplot")
+library(ggcorrplot)
+correl <- round(cor(df[4:17]), 1)   # rounding correl matrix
+p.mat <- cor_pmat(df[4:17])         # compute p-values
+ggcorrplot(correl)              # making heatmap
 
 # Run PCA 
+installed.packages("FactoMineR")
+installed.packages("factoextra")
+library("FactoMineR")
+library("factoextra")
+res.pca <- PCA(df[4:17], graph = FALSE)
+fviz_pca(res.pca, choix = "var", habillage=df$type) + labs(title="Biplot PCA Po Plain")
+
+# Run Cluster 
+distance <- dist(scale(df[4:17]), method = "euclidean")
+cluster <- hclust(distance, method = "complete")
+plot(cluster, cex = 0.6, hang = -1, main = "CA Po Plain") 
+rect.hclust(cluster, k = 3, border = 2:4) 
+
+
+################################################################
+################ WE DON'T USE THIS PART ########################
+################################################################
+
 # Run PCA (using pcamethods package)
 ## svdImpute = standard pca, with imputation, standardised, method univariate (uv)
-pca <- pca(df, 
-           method = "svdImpute", 
+pca <- pca(df[4:15], 
            scale = "uv",
            center = T,
            nPcs = 5,
            evalPcs = 1:5)
-summary(pca)
-
+pca
+write.csv((summary(pca)), "pca.csv")
 
 
 ## Evaluating results
@@ -90,13 +109,13 @@ slplot(pca) # default function in pcamethods but not big enough
 
 
 # PCA using'vegan' package
-df <- scale(df)  #standardize the variables
-class(df)
-vegan.pca <- rda(df)
+vegan.pca <- rda(df[4:17], scale=TRUE)
 vegan.pca
 plot(vegan.pca)
 biplot(vegan.pca, scaling = -1, display = 'species')
 biplot(vegan.pca, scaling = -1, display = 'sites')
+plot(vegan.pca, labels=rownames(df$area))
+
 dev.off()
 
 ordilabel(plot(vegan.pca), display="species", font=1, col="gray70") # Add some frame on the label
@@ -138,8 +157,48 @@ plot(tree.fit, uniform=TRUE,
 text(tree.fit, use.n=TRUE, all=TRUE, cex=.8)
 
 ## using GAM pkg
-mod_lm <- gam(Alk ~ ., data = df)
+mod_lm <- gam(Alk ~ Ca + Na + Mg + 
+                K + Cl + SO + H + 
+                O + C + Sr + Br + 
+                I + Fe, data = df)
 summary(mod_lm)
+gam.check(mod_lm, type=c("deviance","pearson","response"))
+
+mod_lm1 <- gam(Cl ~ Alk + Ca + Na + Mg + 
+                 K + SO + H + 
+                 O + C + Sr + Br + 
+                 I + Fe, data = df)
+summary(mod_lm1)
+gam.check(mod_lm1, type=c("deviance","pearson","response"))
+
+AIC(mod_lm)
+AIC(mod_lm1)
+
+
+
+# Regression tree using rpart pkg
+# rpart() must be in data frame class
+class(df) # it's matrix class
+df <- as.data.frame(df) # re-conversion from matrix to data frame
+class(df) # now it's data frame type
+tree.fit <- rpart(Alk ~ ., data = df) # df must be in data frame class
+printcp(tree.fit) # display the results
+plotcp(tree.fit) # visualize cross-validation results
+summary(tree.fit) # detailed summary of splits
+plot(tree.fit, uniform=TRUE,
+     main="Tree classification of water samples: Po Plain, Italy")
+text(tree.fit, use.n=TRUE, all=TRUE, cex=.8)
+
+tree.fit2 <- rpart(Cl ~ ., data = df) # df must be in data frame class
+printcp(tree.fit2) # display the results
+plotcp(tree.fit2) # visualize cross-validation results
+summary(tree.fit2) # detailed summary of splits
+plot(tree.fit2, uniform=TRUE,
+     main="Tree classification of water samples: Po Plain, Italy")
+text(tree.fit2, use.n=TRUE, all=TRUE, cex=.8)
+par(mfrow)
+dev.off()
+
 
 # Ref:
 ## http://www2.stat.unibo.it/montanari/Didattica/Multivariate/CA_lab.pdf
